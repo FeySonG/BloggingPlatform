@@ -1,28 +1,23 @@
 ﻿using BloggingPlatform.DataBase;
 using BloggingPlatform.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 
-namespace BloggingPlatform.Controllers
+// Ignore Spelling: Blogging
+
+namespace BloggingPlatform
 {
     [ApiController]
     [Route("api/controller")]
-    public class PostController : ControllerBase
+    public class PostController(BlogPlatformDbContext context) : ControllerBase
     {
-        private readonly BlogPlatformDB _context;
+        private readonly BlogPlatformDbContext _context = context;
 
-        public PostController(BlogPlatformDB context)
-        {
-            _context = context;
-        }
-
-      
         [HttpGet]
-        public  IActionResult  GetPost ()
+        public async Task< IActionResult>  GetPost ()
         {
-           
-        return Ok(_context.Posts);
+            var posts = await _context.posts.ToListAsync();
+            return Ok ( posts);
         }
 
         [HttpPost]
@@ -41,7 +36,7 @@ namespace BloggingPlatform.Controllers
                 Date = DateTime.Now
             };
 
-            _context.Posts.Add(post);
+            _context.posts.Add(post);
             _context.SaveChanges();
 
             return CreatedAtAction(nameof(GetPost), new { id = post.Id }, post);
@@ -50,16 +45,16 @@ namespace BloggingPlatform.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeletePost(int id)
         {
-            var post = _context.Posts.FirstOrDefault(p => p.Id == id);
+            Post? post = _context.posts.FirstOrDefault(p => p.Id == id);
 
             if (post == null)
             {
                 return NotFound();
             }
 
-            _context.Posts.Remove(post);
-            _context.SaveChanges();
+            _context.posts.Remove(post);
 
+            _context.SaveChanges();
             return NoContent();
         }
     }

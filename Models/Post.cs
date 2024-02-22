@@ -1,5 +1,4 @@
-﻿using System.Data;
-
+﻿// Ignore Spelling: Blogging
 namespace BloggingPlatform.Models
 {
     public class Post
@@ -12,6 +11,5 @@ namespace BloggingPlatform.Models
 
         public DateTime Date {  get; set; }
 
-        public List<Comments> Comments { get; set; } = [];
     }
 }

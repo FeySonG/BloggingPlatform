@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BloggingPlatform.Migrations
 {
-    [DbContext(typeof(BlogPlatformDB))]
+    [DbContext(typeof(BlogPlatformDbContext))]
     partial class BlogPlatformDBModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -22,7 +22,7 @@ namespace BloggingPlatform.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("BloggingPlatform.Models.Comments", b =>
+            modelBuilder.Entity("BloggingPlatform.LoggingPlatform.Comments", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,21 +33,16 @@ namespace BloggingPlatform.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("PostId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PostId");
-
                     b.ToTable("comments");
                 });
 
-            modelBuilder.Entity("BloggingPlatform.Models.Post", b =>
+            modelBuilder.Entity("BloggingPlatform.LoggingPlatform.Post", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -72,19 +67,7 @@ namespace BloggingPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Posts");
-                });
-
-            modelBuilder.Entity("BloggingPlatform.Models.Comments", b =>
-                {
-                    b.HasOne("BloggingPlatform.Models.Post", null)
-                        .WithMany("Comments")
-                        .HasForeignKey("PostId");
-                });
-
-            modelBuilder.Entity("BloggingPlatform.Models.Post", b =>
-                {
-                    b.Navigation("Comments");
+                    b.ToTable("posts");
                 });
 #pragma warning restore 612, 618
         }

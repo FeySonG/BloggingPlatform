@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Ignore Spelling: Blogging
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace BloggingPlatform.Controllers
 {
@@ -7,27 +9,27 @@ namespace BloggingPlatform.Controllers
     public class CommentController
     {
         [HttpGet]
-        public IActionResult GetComment(string id)
+        public IActionResult? GetComment()
         {
             return null;
         }
 
         [HttpPut]
-        public IActionResult PutComment(string id)
+        public IActionResult? PutComment()
         {
             return null;
         }
 
         [HttpDelete]
-        public IActionResult DeleteComment(string id)
+        public IActionResult? DeleteComment()
         {
             return null;
         }
 
         [HttpPost]
-        public IActionResult CreateComment(string id)
+        public IActionResult? CreateComment()
         {
-            return null;
+            return null;    
         }
 
     }
