@@ -9,7 +9,7 @@ namespace BloggingPlatform.DataBase
     {
 
 
-        public DbSet<Post> posts { get; set; }
+        public DbSet<FullPost> posts { get; set; }
 
         public DbSet<Comments> comments {  get; set; }
 

@@ -2,6 +2,8 @@
 using BloggingPlatform.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.JsonPatch;
+
 
 // Ignore Spelling: Blogging
 
@@ -14,48 +16,75 @@ namespace BloggingPlatform
         private readonly BlogPlatformDbContext _context = context;
 
         [HttpGet]
-        public async Task< IActionResult>  GetPost ()
+        public async Task<IActionResult> GetPost()
         {
             var posts = await _context.posts.ToListAsync();
-            return Ok ( posts);
+            return Ok(posts);
         }
 
         [HttpPost]
         public IActionResult CreatePost([FromBody] Post post)
         {
-            if (!ModelState.IsValid)
+            if (post == null || !ModelState.IsValid ||
+                string.IsNullOrWhiteSpace(post.Title) ||
+                string.IsNullOrWhiteSpace(post.Content) ||
+                string.IsNullOrWhiteSpace(post.Author))
             {
-                return BadRequest(ModelState);
+                return BadRequest("Неподерживаемый формат или неверные данные!");
             }
 
-            var pos = new Post
-            {
-                Title = post.Title,
-                Content = post.Content,
-                Author = post.Author,
-                Date = DateTime.Now
-            };
+          var  newPost = new FullPost
+                {
+                      Title = post.Title,
+                      Author = post.Author,
+                      Content = post.Content,
+                };
 
-            _context.posts.Add(post);
+            _context.posts.Add(newPost);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetPost), new { id = post.Id }, post);
+            return Ok(newPost);
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeletePost(int id)
-        {
-            Post? post = _context.posts.FirstOrDefault(p => p.Id == id);
 
+        [HttpDelete("{id}")]
+        public IActionResult DeletePost(Guid id)
+        {
+            var post = _context.posts.FirstOrDefault(p => p.Id == id);
             if (post == null)
             {
                 return NotFound();
             }
 
             _context.posts.Remove(post);
-
             _context.SaveChanges();
+
             return NoContent();
         }
+
+        [HttpPatch("{postId}")]
+        public IActionResult UpdatePost(Guid postId, [FromBody] Post post)
+        {
+            if (post == null)
+            {
+                return BadRequest("Неподерживаемый формат!");
+            }
+
+            var updatePost = _context.posts.FirstOrDefault(upPost => upPost.Id == postId);
+            if (updatePost == null)
+            {
+                return NotFound("Пост не найден");
+            }
+
+            updatePost.Title = (!string.IsNullOrWhiteSpace(post.Title) && post.Title != "string") ? post.Title : updatePost.Title;
+            updatePost.Content = (!string.IsNullOrWhiteSpace(post.Content) && post.Content != "string") ? post.Content : updatePost.Content;
+            updatePost.Author = (!string.IsNullOrWhiteSpace(post.Author) && post.Author != "string") ? post.Author : updatePost.Author;
+
+            _context.SaveChanges();
+
+            return Ok(updatePost);
+        }
+
+
     }
 }

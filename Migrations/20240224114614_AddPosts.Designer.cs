@@ -4,6 +4,7 @@ using BloggingPlatform.DataBase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BloggingPlatform.Migrations
 {
     [DbContext(typeof(BlogPlatformDbContext))]
-    partial class BlogPlatformDBModelSnapshot : ModelSnapshot
+    [Migration("20240224114614_AddPosts")]
+    partial class AddPosts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,33 +25,36 @@ namespace BloggingPlatform.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("BloggingPlatform.LoggingPlatform.Comments", b =>
+            modelBuilder.Entity("BloggingPlatform.Models.Comments", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("FullPostId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PostId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Text")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FullPostId");
+
                     b.ToTable("comments");
                 });
 
-            modelBuilder.Entity("BloggingPlatform.LoggingPlatform.Post", b =>
+            modelBuilder.Entity("BloggingPlatform.Models.FullPost", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Author")
                         .IsRequired()
@@ -68,6 +74,18 @@ namespace BloggingPlatform.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("posts");
+                });
+
+            modelBuilder.Entity("BloggingPlatform.Models.Comments", b =>
+                {
+                    b.HasOne("BloggingPlatform.Models.FullPost", null)
+                        .WithMany("Comments")
+                        .HasForeignKey("FullPostId");
+                });
+
+            modelBuilder.Entity("BloggingPlatform.Models.FullPost", b =>
+                {
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }
