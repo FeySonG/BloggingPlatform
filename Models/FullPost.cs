@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-
+﻿
 // Ignore Spelling: Blogging
 
 namespace BloggingPlatform.Models

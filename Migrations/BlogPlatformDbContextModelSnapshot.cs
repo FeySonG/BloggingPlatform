@@ -34,7 +34,7 @@ namespace BloggingPlatform.Migrations
                     b.Property<Guid?>("FullPostId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("PostId")
+                    b.Property<Guid>("PostId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Text")
@@ -44,7 +44,7 @@ namespace BloggingPlatform.Migrations
 
                     b.HasIndex("FullPostId");
 
-                    b.ToTable("comments");
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("BloggingPlatform.Models.FullPost", b =>
@@ -70,7 +70,7 @@ namespace BloggingPlatform.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("posts");
+                    b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("BloggingPlatform.Models.Comments", b =>

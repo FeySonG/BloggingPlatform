@@ -9,9 +9,9 @@ namespace BloggingPlatform.DataBase
     {
 
 
-        public DbSet<FullPost> posts { get; set; }
+        public DbSet<FullPost> Posts { get; set; }
 
-        public DbSet<Comments> comments {  get; set; }
+        public DbSet<Comments> Comments {  get; set; }
 
         public BlogPlatformDbContext(DbContextOptions<BlogPlatformDbContext> options) : base(options)
         {

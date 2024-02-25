@@ -1,8 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-// Ignore Spelling: Blogging
-
 #nullable disable
 
 namespace BloggingPlatform.Migrations
@@ -14,7 +12,7 @@ namespace BloggingPlatform.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "posts",
+                name: "Posts",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -25,32 +23,32 @@ namespace BloggingPlatform.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_posts", x => x.Id);
+                    table.PrimaryKey("PK_Posts", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "comments",
+                name: "Comments",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Text = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FullPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_comments", x => x.Id);
+                    table.PrimaryKey("PK_Comments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_comments_posts_FullPostId",
+                        name: "FK_Comments_Posts_FullPostId",
                         column: x => x.FullPostId,
-                        principalTable: "posts",
+                        principalTable: "Posts",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_comments_FullPostId",
-                table: "comments",
+                name: "IX_Comments_FullPostId",
+                table: "Comments",
                 column: "FullPostId");
         }
 
@@ -58,10 +56,10 @@ namespace BloggingPlatform.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "comments");
+                name: "Comments");
 
             migrationBuilder.DropTable(
-                name: "posts");
+                name: "Posts");
         }
     }
 }
