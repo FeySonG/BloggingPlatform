@@ -10,7 +10,7 @@ namespace BloggingPlatform.Models
         public string Content { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
 
-        public List<Comments> Comments { get; set; } = [];
+        public List<Comment> Comments { get; set; } = [];
         public DateTime Date { get; set; } = DateTime.UtcNow;
     }
 }

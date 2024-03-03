@@ -1,4 +1,6 @@
 using BloggingPlatform.DataBase;
+using BloggingPlatform.Interfaces;
+using BloggingPlatform.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,11 +12,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<BlogPlatformDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IPostService, PostServices>();
+builder.Services.AddScoped<ICommentService, CommentServices>();
 
 var app = builder.Build();
-//veevbe
+
 // Configure the HTTP request pipeline.
-//weew
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

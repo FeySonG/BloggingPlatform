@@ -1,5 +1,6 @@
-﻿using BloggingPlatform.DataBase;
-using BloggingPlatform.Models;
+﻿using BloggingPlatform.Contracts;
+using BloggingPlatform.DataBase;
+using BloggingPlatform.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,88 +11,53 @@ namespace BloggingPlatform
 {
     [ApiController]
     [Route("post/controllers")]
-    public class PostController(BlogPlatformDbContext context) : ControllerBase
+    public class PostController(/*BlogPlatformDbContext context,*/ IPostService services) : ControllerBase 
     {
-        private readonly BlogPlatformDbContext _context = context; //Обьявил контекст как обычно но Назар решил что подсказка сделает лучше)) решил оставить так
-
-        [HttpGet("PostsWhithoutComments",Name = "OnlyPosts")] //вывод постов без комментариев для удобства просмотра содержимого только постов
+        //Обьявил контекст как обычно но Назар решил что подсказка сделает лучше)) решил оставить так
+       // private readonly BlogPlatformDbContext _context = context;
+        private readonly IPostService _services = services;
+        
+        //вывод постов без комментариев для удобства просмотра содержимого только постов
+        [HttpGet("PostsWhithoutComments",Name = "OnlyPosts")] 
         public async Task<IActionResult> GetPost()
         {
-            var posts = await _context.Posts.ToListAsync();
+            var posts = await _services.GetAsync();
             return Ok(posts);
         }
 
         [HttpGet("PostsWhithComments",Name = "FullPosts")]
         public async Task<IActionResult> GetFullPost()
         {
-            var postsWithComments = await _context.Posts.Include(p => p.Comments).ToListAsync();
-
+            var postsWithComments = await _services.GetFullAsync();
             return Ok(postsWithComments);
         }
 
         [HttpPost("AddNewPost", Name = "AddNewPost")]
-        public async Task<IActionResult> CreatePost([FromBody] Post post)
+        public async Task<IActionResult> CreatePost([FromBody] PostDto post)
         {
+            //проверка правильного заполнения модели моей сущности и на null
             if (post == null || !ModelState.IsValid ||
                 string.IsNullOrWhiteSpace(post.Title) ||
                 string.IsNullOrWhiteSpace(post.Content) ||
-                string.IsNullOrWhiteSpace(post.Author)) //проверка правильного заполнения модели моей сущности и на null
-            {
-                return BadRequest("Неподерживаемый формат или неверные данные!");
-            }
+                string.IsNullOrWhiteSpace(post.Author)) return BadRequest("Неподерживаемый формат или неверные данные!");
 
-                var  newPost = new FullPost
-                {
-                      Title = post.Title,
-                      Author = post.Author,
-                      Content = post.Content,
-                };
-
-            await  _context.Posts.AddAsync(newPost);
-            await  _context.SaveChangesAsync(); 
-
+            var newPost = await  _services.AddToDBAsync(post);
             return Ok(newPost);
         }
-
 
         [HttpDelete("DeletePost", Name = "DeletePost")]
         public async Task< IActionResult> DeletePost(Guid id)
         {
-            var post = _context.Posts.FirstOrDefault(p => p.Id == id);
-            if (post == null)
-            {
-                return NotFound();
-            }
-
-            _context.Posts.Remove(post);
-            await _context.SaveChangesAsync();
-
+           await  _services.DeleteAsync(id);
             return NoContent();
         }
 
         [HttpPatch("UpdatePost", Name = "UpdatePost")]
-        public async Task <IActionResult> UpdatePost(Guid postId, [FromBody] Post post)
+        public async Task <IActionResult> UpdatePost(Guid postId, [FromBody] PostDto post)
         {
-            if (post == null)
-            {
-                return BadRequest("Неподерживаемый формат!");
-            }
-
-            var updatePost = _context.Posts.FirstOrDefault(upPost => upPost.Id == postId);
-            if (updatePost == null)
-            {
-                return NotFound("Пост не найден");
-            }
-
-
-            //проверка трех полей на на дефолтное значение  и null
-
-            updatePost.Title = (!string.IsNullOrWhiteSpace(post.Title) && post.Title != "string") ? post.Title : updatePost.Title;
-            updatePost.Content = (!string.IsNullOrWhiteSpace(post.Content) && post.Content != "string") ? post.Content : updatePost.Content;
-            updatePost.Author = (!string.IsNullOrWhiteSpace(post.Author) && post.Author != "string") ? post.Author : updatePost.Author; 
-
-           await  _context.SaveChangesAsync();
-
+            if (post == null) return BadRequest("Неподерживаемый формат!");
+            var updatePost = await _services.UpdateAsync(postId, post);
+            if(updatePost == null) return NoContent();
             return Ok(updatePost);
         }
 

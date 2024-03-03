@@ -1,117 +1,76 @@
 ﻿// Ignore Spelling: Blogging
-
+using BloggingPlatform.Contracts;
 using BloggingPlatform.DataBase;
+using BloggingPlatform.Interfaces;
 using BloggingPlatform.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace BloggingPlatform
 {
     [ApiController]
     [Route("comment/controllers")]
-    public class CommentController : ControllerBase
+    public class CommentController(BlogPlatformDbContext context, ICommentService service) : ControllerBase
     {
-        private readonly BlogPlatformDbContext _context;
-        public CommentController(BlogPlatformDbContext context) // создание контекста как мама учила))
-        {
-            _context = context; 
-        }
+        private readonly ICommentService _service = service;
+        private readonly BlogPlatformDbContext _context = context;
 
-        [HttpGet("AllCommentFromAllPosts")]
-        public async Task<IActionResult> GetPost()
+        [HttpGet("AllCommentFromAllPosts", Name = "AllComments")]
+        public async Task<IActionResult> GetComments()
         {
-            var allComments = await _context.Comments.ToListAsync();
+            var allComments = await _service.GetFullAsync();
             return Ok(allComments);
         }
 
-        [HttpGet("PostAndComments",  Name = "Post/Comments")]
+        [HttpGet("PostAndComments",Name = "PostAndComments")]
         public async Task<IActionResult> GetPostWithComments(Guid PostId)
         {
-            var post = await _context.Posts.Include(p => p.Comments).FirstOrDefaultAsync(p => p.Id == PostId);
-            if (post == null)
-            {
-                return NotFound("Пост не найден!");
-            }
-
-            return Ok(new { Post = post});
+            var post = await _service.GetAsync(PostId);
+            if (post == null)return NotFound("Пост не найден!");
+            return Ok(post);
         }
 
-        [HttpGet("PostCommentsById", Name = "CommentsById")]
-        public async Task<IActionResult> GetComments(Guid PostId)
+        [HttpGet("CommentsById",Name = "CommentsById")]
+        public async Task<IActionResult> GetComment(Guid PostId)
         {
             var post = await _context.Posts.Include(p => p.Comments).FirstOrDefaultAsync(p => p.Id == PostId);
-            if (post == null)
-            {
-                return NotFound("Пост не найден!");
-            }
-
+            if (post == null) return NotFound("Пост не найден!");
             return Ok(post.Comments);
         }
 
-
-
-        [HttpPut("UpdatePostComment/{CommentId}")]
-        public async Task<IActionResult> UpdatePostComment(Guid commentId,  Comments updatedComment)
+        [HttpPut("UpdatePostComment/{commentId}", Name = "UpdateComments")]
+        public async Task<IActionResult> UpdatePostComment(Guid commentId, CommentDto updatedComment)
         {
-            var existingComment = await _context.Comments.FindAsync(commentId);
-            if (existingComment == null)
-            {
-                return NotFound("Комментарий не найден!");
-            }
-
-            existingComment.Text = updatedComment.Text; //заменяем только текст комментария, остальное пользователю недано
-
-            await _context.SaveChangesAsync();
-
-            return Ok(existingComment);
+            var post = await _service.UpdateAsync(commentId, updatedComment);
+            if (post == null)  return NotFound("Пост не найден!");
+            return Ok(post);
         }
 
-
-
-        [HttpDelete("DeleteComment/{CommentId}")]
+        [HttpDelete("DeleteComment/{CommentId}", Name = "DeleteComments")]
         public async Task<IActionResult> DeleteComment(Guid commentId)
         {
-            var comment = await _context.Comments.FindAsync(commentId); //поиск коментария по id
-            if (comment == null)
-            {
-                return NotFound("Комментарий не найден!");
-            }
-
-            //поиск коментария в базе и сравнение с полученным ранее
-
-            var post = await _context.Posts.Include(p => p.Comments).FirstOrDefaultAsync(p => p.Comments.Any(c => c.Id == commentId));
-            if (post != null)
-            {
-                post.Comments.Remove(comment);// удаление с таблицы Posts
-            }
-
-            _context.Comments.Remove(comment); // удаление с общей таблицы комментариев
-            await _context.SaveChangesAsync();
+            if (commentId == Guid.Empty) return BadRequest("поле Id пустое либо имеет не правильный формат!"); 
+            var isDeleted = await _service.DeleteAsync(commentId);
+            if (isDeleted == false) return NotFound();
 
             return NoContent();
         }
 
-        [HttpPost("AddNewComment/{PostId}")]
-        public async Task<IActionResult> CreateComment(Guid PostId, Comments Comment)
+        [HttpPost("AddNewComment/{postId}", Name = "CreateComments")]
+        public async Task<IActionResult> CreateComment(Guid postId, CommentDto comment)
         {
-            if (Comment == null || !ModelState.IsValid || string.IsNullOrWhiteSpace(Comment.Text)) //проверка на null и корректное заполнение модели сущности
+            if (comment == null || !ModelState.IsValid || string.IsNullOrWhiteSpace(comment.Text ) || postId == Guid.Empty)
             {
-                return BadRequest("Неподерживаемый формат или неверные данные!");
-            }
-            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == PostId);
-            if (post == null)
-            {
-                return NotFound("Пост не найден!");
+                return BadRequest("Неподдерживаемый формат или неверные данные!");
             }
 
-            Comment.Id = Guid.NewGuid(); //генерация нового Id, чтоб не возится с дефолтным 
-            Comment.PostId = PostId; // Id поста к которому относится комментарий
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == postId);
+            if (post == null) return NotFound("Пост не найден!");
 
-             await  _context.Comments.AddAsync(Comment); // сохранение комментария в общей таблице
-            post.Comments.Add(Comment);
-            await _context.SaveChangesAsync();
-
-            return Ok(post);
+            var addedPost = await _service.AddToDBAsync(postId, comment);
+            if (addedPost == null) return StatusCode(500, "Ошибка при добавлении комментария.");
+            return Ok(addedPost);
         }
 
     }

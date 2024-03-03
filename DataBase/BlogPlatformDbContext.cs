@@ -11,7 +11,7 @@ namespace BloggingPlatform.DataBase
 
         public DbSet<FullPost> Posts { get; set; }
 
-        public DbSet<Comments> Comments {  get; set; }
+        public DbSet<Comment> Comments {  get; set; }
 
         public BlogPlatformDbContext(DbContextOptions<BlogPlatformDbContext> options) : base(options)
         {

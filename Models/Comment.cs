@@ -3,10 +3,10 @@
 
 namespace BloggingPlatform.Models
 {
-    public class Comments
+    public class Comment
     {
 
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string? Text { get; set; }
         public Guid PostId { get; set; }
         public DateTime Date { get; set; } = DateTime.UtcNow;
